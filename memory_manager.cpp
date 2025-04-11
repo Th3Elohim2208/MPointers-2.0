@@ -308,9 +308,12 @@ int main(int argc, char* argv[]) {
     }
 
     int port = std::stoi(argv[2]);
+    std::
     size_t size_mb = std::stoul(argv[4]);
     std::string dump_folder = argv[6];
-
+    std::cout << "\nport:" << port << "\n";
+    std::cout << "\nsize:" << port << "\n";
+    std::cout << "\ndump folder:" << port << "\n";
     RunServer(port, size_mb, dump_folder);
     return 0;
 }
