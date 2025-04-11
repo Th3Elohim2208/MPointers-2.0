@@ -16,26 +16,26 @@
 #pragma comment(lib, "Ws2_32.lib") // Vincula la biblioteca Winsock
 
 struct MemoryBlock {
-    size_t offset;       // Posición inicial en el bloque de memoria
-    size_t size;         // Tamaño del bloque
-    std::string type;    // Tipo de dato
-    int ref_count;       // Conteo de referencias
-    bool is_free;        // Indica si está libre
-};
+    size_t offset;       
+    size_t size;         
+    std::string type;    
+    int ref_count;      
+    bool is_free;    
+   };
 
 class MemoryManager {
 public:
     MemoryManager(size_t size_mb, const std::string& dump_folder)
         : total_size_(size_mb * 1024 * 1024), dump_folder_(dump_folder), next_id_(0) {
         memory_ = static_cast<char*>(malloc(total_size_));
-        if (!memory_) { // Validación explícita de malloc
+        if (!memory_) { 
             throw std::runtime_error("Failed to allocate memory: malloc returned nullptr");
         }
         blocks_[next_id_++] = {0, total_size_, "free", 0, true}; // Bloque inicial libre
     }
 
     ~MemoryManager() {
-        if (memory_) { // Asegura que memory_ no sea nullptr antes de liberar
+        if (memory_) { 
             free(memory_);
         }
     }
@@ -134,16 +134,17 @@ public:
     }
 
 private:
-    char* memory_;                          // Bloque de memoria principal
-    size_t total_size_;                     // Tamaño total en bytes
-    std::string dump_folder_;               // Carpeta para los dumps
-    std::map<int, MemoryBlock> blocks_;     // Mapa de bloques
-    int next_id_;                           // Próximo ID disponible
-    std::mutex mutex_;                      // Protección para acceso concurrente
-    std::thread gc_thread_;                 // Hilo del garbage collector
-    bool running_;                          // Control del GC
+    char* memory_;                          
+    size_t total_size_;                     
+    std::string dump_folder_;               
+    std::map<int, MemoryBlock> blocks_;     
+    int next_id_;                           
+    std::mutex mutex_;                      
+    std::thread gc_thread_;                 
+    bool running_;                          
 
     void mergeFreeBlocks() {
+        std::cout << dump_folder_;
         std::vector<int> sorted_ids;
         for (const auto& [id, block] : blocks_) {
             sorted_ids.push_back(id);
@@ -170,23 +171,21 @@ private:
 
     void dumpMemoryState() {
         auto now = std::chrono::system_clock::now();
+        auto time = std::chrono::system_clock::to_time_t(now);
         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-        std::time_t tt = std::chrono::system_clock::to_time_t(now);
-        std::tm* ptm = std::localtime(&tt);
 
-        std::ostringstream filename;
-        filename << dump_folder_ << "\\" // Barra invertida para Windows
-                 << std::put_time(ptm, "%Y%m%d_%H%M%S") << "_" << std::setfill('0') << std::setw(3) << ms.count() << ".txt";
+        std::stringstream ss;
+        ss << std::put_time(std::localtime(&time), "%Y-%m-%d_%H-%M-%S") << "." << ms.count() << ".dump";
 
-        std::ofstream file(filename.str());
-        if (file.is_open()) {
-            file << "Memory State:\n";
+        std::ofstream dumpFile(dump_folder_ + "/" + ss.str());
+        if (dumpFile.is_open()) {
+            dumpFile << "Memory State:\n";
             for (const auto& [id, block] : blocks_) {
-                file << "ID: " << id << ", Offset: " << block.offset << ", Size: " << block.size
+                dumpFile << "ID: " << id << ", Offset: " << block.offset << ", Size: " << block.size
                      << ", Type: " << block.type << ", RefCount: " << block.ref_count
                      << ", Free: " << (block.is_free ? "Yes" : "No") << "\n";
             }
-            file.close();
+            dumpFile.close();
         }
     }
 };
@@ -312,8 +311,8 @@ int main(int argc, char* argv[]) {
     size_t size_mb = std::stoul(argv[4]);
     std::string dump_folder = argv[6];
     std::cout << "\nport:" << port << "\n";
-    std::cout << "\nsize:" << port << "\n";
-    std::cout << "\ndump folder:" << port << "\n";
+    std::cout << "\nsize:" << size_mb << "\n";
+    std::cout << "\ndump folder:" << dump_folder << "\n";
     RunServer(port, size_mb, dump_folder);
     return 0;
 }
